@@ -1,3 +1,2 @@
 fastapi
-base64
 uvicorn
