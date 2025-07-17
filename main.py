@@ -5,6 +5,11 @@ import uvicorn
 
 app = FastAPI()
 
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    # Добавляем иконку сайта
+    return FileResponse('favicon.ico')
+
 @app.get("/")
 async def main_page(): 
     # Главная страница
@@ -20,7 +25,7 @@ async def display_base64_html(base64_html: str):
         # Предполагаем, что декодированное содержимое является HTML в кодировке UTF-8
         html_content = decoded_bytes.decode('utf-8')
         
-        return HTMLResponse(content=html_content)
+        return HTMLResponse(html_content)
     except Exception as e:
         # Перехватываем конкретные ошибки декодирования для более информативных сообщений
         raise HTTPException(status_code=400, detail=f"Неверное содержимое Base64 или UTF-8: {e}")
