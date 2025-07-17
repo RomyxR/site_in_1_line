@@ -5,61 +5,31 @@
 <title>site-in-1-line</title>
 <link rel="icon" href="favicon.ico" type="image/ico">
 <style>
-  body { 
-    font-family: Arial, Helvetica, sans-serif; 
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
-  }
-  
-  header {
-    background: #979797;
-    color: white;
-    padding: 20px 0;
-    text-align: center;
-  }
-  
-  .container {
-    padding: 20px;
-    max-width: 900px;
-    margin: auto;
-    background: white;
-    margin-top: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-  
-  h1, h2 {
-    margin-top: 0;
-  }
-  
-  .code-example {
-    background: #f0f0f0;
-    padding: 3px;
-    border-radius: 3px;
-    overflow-x: auto;
-  }
-  
+body { font-family: Arial, Helvetica, sans-serif; }
+.code {
+background: #f0f0f0;
+padding: 3px;
+border-radius: 3px;
+overflow-x: auto;
+}
 </style>
 </head>
 <body>
-<header>
-<h1>site-in-1-line</h1>
-</header>
+<div align="center">
+<h1 style="font-size: 5vw;">site-in-1-line</h1>
+<h2>Сервис для хостинга простых сайтов без хостинга. Весь сайт сохраняеться в 1 строке.</h2>
 
-<div class="container">
-  <h2>О сервисе</h2>
-  <p>Весь сайт сохраняется в одну строку. Просто создайте HTML-файл со встроенным CSS и JavaScript кодом, закодируйте его в Base64 и откройте через наш сервис.</p>
+<h2>Ваш сайт должен быть сохранён только в 1 файле HTML со встроеным CSS и JavaScript кодом.</h2>
+<h2>Закодируйте HTML в Base64, ссылка будет выглядить так: <span class="code">https://site-in-1-line.vercel.app/{ваш Base64 код}</span></h2>
 
-  <h2>Как использовать?</h2>
-  <ol>
-    <li>Создайте HTML файл со встроенными стилями и скриптами</li>
-    <li>Закодируйте его содержимое в Base64</li>
-    <li>Добавьте код к URL: <span class="code-example">https://site-in-1-line.vercel.app/{ваш Base64 код}</span></li>
-    <li>Поделитесь ссылкой!</li>
-  </ol>
+<h1 style="color: red; font-style: italic;">ВАЖНО!</h1>
+<h2>Удаляйте из HTML-кода ненужные для работы элементы, такие как комментарии и пробелы, так как они тоже кодируются в Base64, увеличивая итоговый размер данных.</h2>
+
+<a href="https://github.com/RomyxR/" style="text-decoration: none;"><h1 style="color: black;">Github 🔗</h1></a>
+<a href="https://t.me/RomyxR" style="text-decoration: none;"><h1 style="color: lightblue;">Telegram 🔗</h1></a>
+</div>
+
+
 
 </body>
 </html>
