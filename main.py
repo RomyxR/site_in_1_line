@@ -16,10 +16,10 @@ async def main_page():
     return FileResponse("main_page.html")
 
 @app.get("/s/{base85url_html:path}")
-async def display_base85url_html(base64_html: str):
+async def display_base85url_html(base85url_html: str):
     # Декодирует строку Base85url из пути URL и отображает ее как HTML.
     try:
-        html_content = b85url.decode_string(base64_html)
+        html_content = b85url.decode_string(base85url_html)
         return HTMLResponse(html_content)
     except Exception as e:
         # Перехватываем конкретные ошибки декодирования для более информативных сообщений
