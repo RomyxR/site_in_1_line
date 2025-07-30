@@ -15,7 +15,7 @@ async def main_page():
     # Главная страница
     return FileResponse("main_page.html")
 
-@app.get("/s/{base85url_html:path}")
+@app.get("/s/{base85url_html}")
 async def display_base85url_html(base85url_html: str):
     # Декодирует строку Base85url из пути URL и отображает ее как HTML.
     try:
@@ -23,7 +23,7 @@ async def display_base85url_html(base85url_html: str):
         return HTMLResponse(html_content)
     except Exception as e:
         # Перехватываем конкретные ошибки декодирования для более информативных сообщений
-        raise HTTPException(status_code=400, detail=f"Неверное содержимое Base85_url или UTF-8: {e}")
+        raise HTTPException(status_code=400, detail=f"Неверное содержимое Base85url или UTF-8: {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
