@@ -15,6 +15,11 @@ async def main_page():
     # Главная страница
     return FileResponse("main_page.html")
 
+@app.get("/c")
+async def html_to_si1l_page(): 
+    # Конвертер
+    return FileResponse("html2si1l.html")
+
 @app.get("/s/{base85url_html}")
 async def display_base85url_html(base85url_html: str):
     # Декодирует строку Base85url из пути URL и отображает ее как HTML.
