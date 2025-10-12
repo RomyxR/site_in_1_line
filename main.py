@@ -1,7 +1,7 @@
 from fastapi import *
 from fastapi.responses import HTMLResponse, FileResponse
 import uvicorn
-import b85url
+import si1l_compress
 
 app = FastAPI()
 
@@ -20,15 +20,16 @@ async def html_to_si1l_page():
     # Конвертер
     return FileResponse("html2si1l.html")
 
-@app.get("/s/{base85url_html}")
-async def display_base85url_html(base85url_html: str):
-    # Декодирует строку Base85url из пути URL и отображает ее как HTML.
+@app.get("/s/{si1lc_html}")
+async def display_si1l_html(si1lc_html: str):
+    # Декодирует строку si1l из пути URL и отображает ее как HTML.
     try:
-        html_content = b85url.decode_string(base85url_html)
+        html_content = si1l_compress.decompress(si1lc_html)
         return HTMLResponse(html_content)
     except Exception as e:
         # Перехватываем конкретные ошибки декодирования для более информативных сообщений
-        raise HTTPException(status_code=400, detail=f"Неверное содержимое Base85url или UTF-8: {e}")
+        raise HTTPException(status_code=400, detail=f"Неверное содержимое si1lc или UTF-8: {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+ 
