@@ -18,15 +18,15 @@
     min-height: 90vh;
   }
  textarea {
-    width: 80%; /* Ширина 80% от родителя */
-    max-width: 600px; /* Максимальная ширина */
-    padding: 10px; /* Внутренние отступы */
-    margin-bottom: 15px; /* Отступ снизу */
-    border: 1px solid #ddd; /* Светлая рамка */
-    border-radius: 5px; /* Скругленные углы */
-    font-size: 1rem; /* Размер шрифта */
-    box-sizing: border-box; /* Учет padding и border в ширине */
-    resize: vertical; /* Разрешить изменение размера только по вертикали */
+    width: 80%;
+    max-width: 600px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    resize: vertical;
   }
  button {
     background-color: #007bff;
@@ -48,117 +48,92 @@
     color: #555;
     text-align: center;
     max-width: 80%;
+    word-break: break-all;
   }
 </style>
-
+</head>
+<body>
 <textarea id="input_html" name="input_html" rows="5" cols="60" placeholder="Ваш HTML"></textarea>
 <br>
 <button id="btn">Создать ссылку</button>
 <br>
 <button id="btn_copy">Создать ссылку и скопировать</button>
-<h3 style="overflow-wrap: break-word;" id="result"></h3>
+<h3 id="result"></h3>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 <script>
 const site_html = document.getElementById("input_html");
 const button = document.getElementById("btn");
 const button_copy = document.getElementById("btn_copy");
-const button_clck = document.getElementById("btn_clck");
 const output = document.getElementById("result");
-
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~!*'()";
 const BASE = ALPHABET.length;
 
 function base85urlEncode(data) {
-    // Если строка, конвертируем в байты
-    let bytes;
-    if (typeof data === 'string') {
-        bytes = new TextEncoder().encode(data);
-    } else {
-        bytes = data;
-    }
-    
-    // Конвертируем байты в большое число
+    let bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+    if (bytes.length === 0) return ALPHABET[0];
     let num = 0n;
-    for (let i = 0; i < bytes.length; i++) {
-        num = (num << 8n) + BigInt(bytes[i]);
-    }
-    
-    // Кодируем в base85
-    if (num === 0n) {
-        return ALPHABET[0];
-    }
-    
+    for (let b of bytes) num = (num << 8n) + BigInt(b);
+    if (num === 0n) return ALPHABET[0];
     let encoded = "";
     while (num > 0n) {
-        const remainder = Number(num % BigInt(BASE));
-        num = num / BigInt(BASE);
-        encoded = ALPHABET[remainder] + encoded;
+        encoded = ALPHABET[Number(num % BigInt(BASE))] + encoded;
+        num /= BigInt(BASE);
     }
-    
     return encoded;
 }
 
-function base85urlDecode(encoded) {
-    // Декодируем из base85 в большое число
-    let num = 0n;
-    for (let i = 0; i < encoded.length; i++) {
-        const char = encoded[i];
-        const index = ALPHABET.indexOf(char);
-        if (index === -1) {
-            throw new Error(`Invalid character: ${char}`);
-        }
-        num = num * BigInt(BASE) + BigInt(index);
-    }
-    
-    // Конвертируем число в байты
-    if (num === 0n) {
-        return new Uint8Array([0]);
-    }
-    
-    const byteLength = Math.ceil(num.toString(2).length / 8);
-    const bytes = new Uint8Array(byteLength);
-    
-    for (let i = byteLength - 1; i >= 0; i--) {
-        bytes[i] = Number(num & 0xFFn);
-        num = num >> 8n;
-    }
-    
-    return bytes;
+function pythonCompatibleGzip(data) {
+    const gz = pako.gzip(data, { level: 9 });
+    const arr = new Uint8Array(gz.length);
+    arr.set(gz);
+    // Устанавливаем заголовок как в Python gzip.compress()
+    arr[3] = 0x00; // FLG
+    arr[4] = 0;    // MTIME
+    arr[5] = 0;
+    arr[6] = 0;
+    arr[7] = 0;
+    arr[8] = 0x02; // XFL = best compression
+    arr[9] = 0xff; // OS = unknown
+    return arr;
 }
 
-function encodeString(text) {
-    return base85urlEncode(text);
+function compress(text) {
+    const utf8 = new TextEncoder().encode(text);
+    const gz = pythonCompatibleGzip(utf8);
+    return base85urlEncode(gz);
 }
 
-function decodeString(encoded) {
-    const bytes = base85urlDecode(encoded);
-    return new TextDecoder().decode(bytes);
+// Генерация динамического URL
+function getBaseUrl() {
+    return window.location.origin + "/s/";
 }
-
 
 button.addEventListener('click', () => {
-  const url = site_html.value;
-
-  let base64 = encodeString(url)
-  
-  const result = "https://site-in-1-line.vercel.app/s/" + base64;
-  console.log(result);
-  output.textContent = result;
+    const html = site_html.value;
+    if (!html.trim()) return output.textContent = "Введите HTML";
+    try {
+        const link = getBaseUrl() + compress(html);
+        output.textContent = link;
+    } catch (e) {
+        output.textContent = "Ошибка: " + e.message;
+    }
 });
 
 button_copy.addEventListener('click', () => {
-
-  const url = site_html.value;
-  
-  let base64 = encodeString(url)
-  
-  const result = "https://site-in-1-line.vercel.app/s/" + base64;
-  console.log(result);
-  output.textContent = result;
-  navigator.clipboard.writeText(result);
+    const html = site_html.value;
+    if (!html.trim()) return output.textContent = "Введите HTML";
+    try {
+        const link = getBaseUrl() + compress(html);
+        output.textContent = link;
+        navigator.clipboard.writeText(link).then(() => {
+            output.textContent += " (скопировано)";
+        });
+    } catch (e) {
+        output.textContent = "Ошибка: " + e.message;
+    }
 });
 </script>
-   
 </body>
 </html>
