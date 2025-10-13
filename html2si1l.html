@@ -53,13 +53,14 @@
 </style>
 </head>
 <body>
-<textarea id="input_html" name="input_html" rows="5" cols="60" placeholder="Ваш HTML"></textarea>
+<textarea id="input_html" name="input_html" rows="5" cols="60" placeholder="Ваш HTML">sas</textarea>
 <br>
 <button id="btn">Создать ссылку</button>
 <br>
 <button id="btn_copy">Создать ссылку и скопировать</button>
 <h3 id="result"></h3>
 
+<!-- ✅ Без пробелов! -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 <script>
 const site_html = document.getElementById("input_html");
@@ -88,14 +89,13 @@ function pythonCompatibleGzip(data) {
     const gz = pako.gzip(data, { level: 9 });
     const arr = new Uint8Array(gz.length);
     arr.set(gz);
-    // Устанавливаем заголовок как в Python gzip.compress()
     arr[3] = 0x00; // FLG
     arr[4] = 0;    // MTIME
     arr[5] = 0;
     arr[6] = 0;
     arr[7] = 0;
-    arr[8] = 0x02; // XFL = best compression
-    arr[9] = 0xff; // OS = unknown
+    arr[8] = 0x02; // XFL
+    arr[9] = 0xff; // OS
     return arr;
 }
 
@@ -105,7 +105,6 @@ function compress(text) {
     return base85urlEncode(gz);
 }
 
-// Генерация динамического URL
 function getBaseUrl() {
     return window.location.origin + "/s/";
 }
