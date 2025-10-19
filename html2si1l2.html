@@ -80,7 +80,7 @@ function makeAbsoluteUrl(path) {
 }
 
 async function sendHtmlToServer(html) {
-    const response = await fetch(`${ROOT_URL}/encode/s`, {
+    const response = await fetch(`${ROOT_URL}/encode/s2`, {
         method: "POST",
         headers: {
             "Content-Type": "text/html; charset=utf-8"
