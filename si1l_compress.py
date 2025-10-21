@@ -1,4 +1,6 @@
 import gzip
+from bs4 import BeautifulSoup, Comment
+import re
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~!*'()"
 BASE = len(ALPHABET)
@@ -23,7 +25,11 @@ def base85url_decode(encoded):
     return num.to_bytes(byte_length or 1, 'big')
 
 def compress(text: str):
-    compressed = gzip.compress(text.encode('utf-8'), mtime=0)
+    def clean_html(html: str) -> str:
+        soup = BeautifulSoup(html, 'html.parser')
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):comment.extract()
+        return re.sub(r'>\s+<', '><', str(soup)).strip()
+    compressed = gzip.compress(clean_html(text.encode('utf-8')), mtime=0)
     return base85url_encode(compressed)
 
 def decompress(text: str):
