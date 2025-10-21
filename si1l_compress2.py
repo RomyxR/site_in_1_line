@@ -27,10 +27,12 @@ def base85url_decode(encoded):
 def compress(text: str):
     def clean_html(html: str) -> str:
         soup = BeautifulSoup(html, 'html.parser')
-        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):comment.extract()
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            comment.extract()
         return re.sub(r'>\s+<', '><', str(soup)).strip()
     
-    compressed = brotli.compress(clean_html(text.encode('utf-8')), quality=11)  # максимальное сжатие
+    cleaned = clean_html(text)
+    compressed = brotli.compress(cleaned.encode('utf-8'), quality=11)
     return base85url_encode(compressed)
 
 def decompress(encoded_text: str):

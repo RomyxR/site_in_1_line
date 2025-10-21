@@ -29,7 +29,8 @@ def compress(text: str):
         soup = BeautifulSoup(html, 'html.parser')
         for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):comment.extract()
         return re.sub(r'>\s+<', '><', str(soup)).strip()
-    compressed = gzip.compress(clean_html(text.encode('utf-8')), mtime=0)
+    cleaned = clean_html(text)
+    compressed = gzip.compress(cleaned.encode('utf-8'), mtime=0)
     return base85url_encode(compressed)
 
 def decompress(text: str):
