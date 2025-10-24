@@ -58,29 +58,36 @@
 <button id="btn">Создать ссылку</button>
 <br>
 <button id="btn_copy">Создать ссылку и скопировать</button>
+<br>
+<button id="btn_safe">Создать safe-ссылку</button>
+<br>
+<button id="btn_safe_copy">Создать safe-ссылку и скопировать</button>
 <h3 id="result"></h3>
 
 <script>
-
 const ROOT_URL = window.location.origin;
 
 const site_html = document.getElementById("input_html");
 const button = document.getElementById("btn");
 const button_copy = document.getElementById("btn_copy");
+const button_safe = document.getElementById("btn_safe");
+const button_safe_copy = document.getElementById("btn_safe_copy");
 const output = document.getElementById("result");
 
 function makeAbsoluteUrl(path) {
     if (path.startsWith("http://") || path.startsWith("https://")) {
-        return path; // уже абсолютный
+        return path;
     }
     if (path.startsWith("/")) {
-        return ROOT_URL + path; // превращаем в абсолютный
+        return ROOT_URL + path;
     }
-    return ROOT_URL + "/" + path; // на всякий случай
+    return ROOT_URL + "/" + path; 
 }
 
-async function sendHtmlToServer(html) {
-    const response = await fetch(`${ROOT_URL}/encode/s`, {
+async function sendHtmlToServer(html, endpoint = "/encode/s") {
+    const isSafe = endpoint === "/encode/ss";
+
+    const response = await fetch(`${ROOT_URL}${endpoint}`, {
         method: "POST",
         headers: {
             "Content-Type": "text/html; charset=utf-8"
@@ -98,11 +105,17 @@ async function sendHtmlToServer(html) {
         throw new Error("Сервер не вернул поле 'url'");
     }
 
-    // Преобразуем относительный путь в полный URL
-    return makeAbsoluteUrl(data.url);
+    let url = data.url;
+
+    // Исправляем /s/ → /ss/ для safe-режима
+    if (isSafe && url.startsWith("/s/")) {
+        url = "/ss/" + url.slice(3);
+    }
+
+    return makeAbsoluteUrl(url);
 }
 
-// ... остальной код (обработчики кнопок) без изменений
+// ... остальные обработчики без изменений (как у вас)
 button.addEventListener('click', async () => {
     const html = site_html.value;
     if (!html.trim()) {
@@ -112,7 +125,7 @@ button.addEventListener('click', async () => {
 
     try {
         output.textContent = "Отправка...";
-        const link = await sendHtmlToServer(html);
+        const link = await sendHtmlToServer(html, "/encode/s");
         output.textContent = link;
     } catch (e) {
         output.textContent = "Ошибка: " + e.message;
@@ -128,7 +141,41 @@ button_copy.addEventListener('click', async () => {
 
     try {
         output.textContent = "Отправка...";
-        const link = await sendHtmlToServer(html);
+        const link = await sendHtmlToServer(html, "/encode/s");
+        output.textContent = link;
+        await navigator.clipboard.writeText(link);
+        output.textContent += " (скопировано)";
+    } catch (e) {
+        output.textContent = "Ошибка: " + e.message;
+    }
+});
+
+button_safe.addEventListener('click', async () => {
+    const html = site_html.value;
+    if (!html.trim()) {
+        output.textContent = "Введите HTML";
+        return;
+    }
+
+    try {
+        output.textContent = "Отправка...";
+        const link = await sendHtmlToServer(html, "/encode/ss");
+        output.textContent = link;
+    } catch (e) {
+        output.textContent = "Ошибка: " + e.message;
+    }
+});
+
+button_safe_copy.addEventListener('click', async () => {
+    const html = site_html.value;
+    if (!html.trim()) {
+        output.textContent = "Введите HTML";
+        return;
+    }
+
+    try {
+        output.textContent = "Отправка...";
+        const link = await sendHtmlToServer(html, "/encode/ss");
         output.textContent = link;
         await navigator.clipboard.writeText(link);
         output.textContent += " (скопировано)";

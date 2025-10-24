@@ -12,7 +12,7 @@ html_content = """
 """
 
 response = requests.post(
-    "http://localhost:8000/encode/si1l2",
+    "https://si1l.vercel.app/encode/s2",
     data=html_content,                     # ← передаём как тело запроса
     headers={"Content-Type": "text/html; charset=utf-8"}
 )

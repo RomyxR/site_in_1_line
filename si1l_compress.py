@@ -1,44 +1,44 @@
-import gzip
+import brotli
 from bs4 import BeautifulSoup, Comment
 import re
-
-ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~!*'()"
-BASE = len(ALPHABET)
-
-def base85url_encode(data):
-    if isinstance(data, str):
-        data = data.encode('utf-8')
-    num = int.from_bytes(data, 'big')
-    if num == 0:
-        return ALPHABET[0]  # Обработка пустых или нулевых данных
-    encoded = ""
-    while num > 0:
-        num, remainder = divmod(num, BASE)
-        encoded = ALPHABET[remainder] + encoded
-    return encoded
-
-def base85url_decode(encoded):
-    if not encoded:
-        return b""
-    num = sum(ALPHABET.index(char) * (BASE ** i) for i, char in enumerate(reversed(encoded)))
-    byte_length = (num.bit_length() + 7) // 8
-    return num.to_bytes(byte_length or 1, 'big')
+from b85url import *
 
 def compress(text: str):
     def clean_html(html: str) -> str:
         soup = BeautifulSoup(html, 'html.parser')
-        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):comment.extract()
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            comment.extract()
         return re.sub(r'>\s+<', '><', str(soup)).strip()
+    
     cleaned = clean_html(text)
-    compressed = gzip.compress(cleaned.encode('utf-8'), mtime=0)
+    compressed = brotli.compress(cleaned.encode('utf-8'), quality=11)
     return base85url_encode(compressed)
 
-def decompress(text: str):
-    decoded = base85url_decode(text)
-    return gzip.decompress(decoded).decode('utf-8')
+def decompress(encoded_text: str):
+    decoded = base85url_decode(encoded_text)
+    decompressed = brotli.decompress(decoded)
+    return decompressed.decode('utf-8')
+
+def decompress_safe(encoded_text: str):
+    decoded = base85url_safe_decode(encoded_text)
+    decompressed = brotli.decompress(decoded)
+    return decompressed.decode('utf-8')
+
+def compress_safe(text: str):
+    def clean_html(html: str) -> str:
+        soup = BeautifulSoup(html, 'html.parser')
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            comment.extract()
+        return re.sub(r'>\s+<', '><', str(soup)).strip()
+    
+    cleaned = clean_html(text)
+    compressed = brotli.compress(cleaned.encode('utf-8'), quality=11)
+    return base85url_safe_encode(compressed)
 
 
 
+
+# Тестовые данные
 test = """<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -81,8 +81,13 @@ test = """<!DOCTYPE html>
 </html>"""
 
 if __name__ == "__main__":
-    print("Original:", len(test))
-    print("Compressed:", len(compress(test)))
-    print("Restored:", len(decompress(compress(test))))
-    print("encode b86url", len(base85url_encode(test)))
-    print("Equal?", test == decompress(compress(test)))
+    original_len = len(test)
+    compressed_encoded = compress(test)
+    compressed_len = len(compressed_encoded)
+    restored = decompress(compressed_encoded)
+    restored_len = len(restored)
+
+    print("Original length:", original_len)
+    print("Compressed (Brotli + base85url) length:", compressed_len)
+    print("Restored length:", restored_len)
+    print("Equal?", test == restored)
